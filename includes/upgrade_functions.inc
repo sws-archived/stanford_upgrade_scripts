@@ -11,19 +11,45 @@ function find_replace_module_versions {
 }
 
 function update_stanford_profiles {
+  pwd
   for profile in ${!stanford_profiles[@]}; do
     profile_master_branch="${stanford_profiles[$profile]}"
     cd ~/Sites/$profile
     git checkout $profile_master_branch
     git pull
-    git checkout -b $new_uat_branch
+    if [ `git branch --list $new_uat_branch` ]; then
+      echo "git checkout $new_uat_branch"
+      git checkout $new_uat_branch
+    else
+      echo "git checkout -b $new_uat_branch"
+      git checkout -b $new_uat_branch
+    fi
     while IFS=, read module_name current_version new_version; do
       find_replace_module_versions
-    done < ~/Documents/modules_to_upgrade.csv
-    git add *
-    git commit -m "Module version updates for $new_uat_branch"
-    # git push --set-upstream origin $new_uat_branch
+    done < ~/Sites/stanford_upgrade_scripts/modules_to_upgrade.csv
+    if [ `git rev-parse --abbrev-ref HEAD` == "$new_uat_branch" ]; then
+      git add *
+      git commit -m "Module version updates for $new_uat_branch"
+    else
+      echo "something appears to have gone wrong"
+      exit
+    fi
   done
+}
+
+function push_profile_branch_changes {
+  cd ~/Sites/stanford-jumpstart-deployer
+  if [ `git branch --list $new_uat_branch` ]; then
+    git push $new_uat_branch
+  else
+    git push --set-upstream origin $new_uat_branch
+  fi
+  cd ~/Sites/Stanford-Drupal-Profile
+  if [ `git branch --list $new_uat_branch` ]; then
+    git push $new_uat_branch
+  else
+    git push --set-upstream origin $new_uat_branch
+  fi
 }
 
 function create_new_product_branch_in_gitolite_repository {
@@ -31,8 +57,12 @@ function create_new_product_branch_in_gitolite_repository {
   echo "git checkout $last_stable_branch$suffix"
   git checkout $last_stable_branch$suffix
   echo "git checkout -b $new_uat_product_branch"
-  git checkout -b $new_uat_product_branch
-  # git push --set-upstream origin $new_uat_product_branch
+  if [ `git branch --list $branch_name `]; then
+    git checkout $new_uat_product_branch
+  else
+    git checkout -b $new_uat_product_branch
+  fi
+  git push --set-upstream origin $new_uat_product_branch
 }
 
 function build_product_site {
@@ -71,6 +101,10 @@ function move_commit_modules {
     git add sites/all/modules/contrib/$module_name
     git status
     git commit -m "Update module $module_name-7.x-$new_version"
-    # git push
   done
+}
+
+function push_product_branch_changes {
+  cd ~/Sites/$new_uat_product_branch
+  git push $new_uat_product_branch
 }

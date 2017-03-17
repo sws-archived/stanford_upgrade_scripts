@@ -32,8 +32,8 @@ declare -A products_list=(
 )
 
 declare -A stanford_profiles=(
-  ["stanford-jumpstart-deployer"]="7.x-2.x"
-  ["Stanford-Drupal-Profile"]="7.x-5.x"
+  ["stanford-jumpstart-deployer"]="7.x-5.x"
+  ["Stanford-Drupal-Profile"]="7.x-2.x"
 )
 
 # download gitolite repository and checkout last stable branch
@@ -44,8 +44,10 @@ if [ ! -d ~/Sites/$last_stable_branch ]; then
 fi
 
 update_stanford_profiles
-read -p "Check the profiles updates.  Yes to continue, No to quit now." -n 1 -r
-if [[ $REPLY =~ ^[Nn]$ ]]; then
+read -p "Check the profiles updates.  Yes to continue, No to quit now. " -n 1 -r
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+  push_profile_branch_changes
+else
   exit
 fi
 
@@ -54,4 +56,10 @@ for product in ${!products_list[@]}; do
   create_new_product_branch_in_gitolite_repository
   build_product_site
   move_commit_modules
+  read -p "Check the products updates in ~/Sites/$last_stable_branch.  Yes to continue, No to quit now. " -n 1 -r
+  if [[ $REPLY =~ ^[Yy]$ ]]; then
+    push_product_branch_changes
+  else
+    exit
+  fi
 done
