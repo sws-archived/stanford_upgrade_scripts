@@ -21,14 +21,14 @@ date=`date +%Y%m%d`
 new_uat_branch="uat$date"
 
 declare -A products_list=(
-  ["group"]="$new_uat_branch"
-  ["dept"]="$new_uat_branch-dept"
   ["jumpstart-academic"]="$new_uat_branch-jsa"
   ["jumpstart-plus"]="$new_uat_branch-jsplus"
   ["jumpstart"]="$new_uat_branch-jsv"
   ["jumpstart-lab"]="$new_uat_branch-jsl"
   ["jumpstart-engineering"]="$new_uat_branch-jse"
   ["jumpstart-vpsa"]="$new_uat_branch-jsvpsa"
+  ["dept"]="$new_uat_branch-dept"
+  ["group"]="$new_uat_branch"
 )
 
 declare -A stanford_profiles=(
@@ -45,6 +45,7 @@ fi
 
 update_stanford_profiles
 read -p "Check the profiles updates.  Yes to continue, No to quit now. " -n 1 -r
+echo "\n"
 if [[ $REPLY =~ ^[Yy]$ ]]; then
   push_profile_branch_changes
 else
@@ -57,6 +58,7 @@ for product in ${!products_list[@]}; do
   build_product_site
   move_commit_modules
   read -p "Check the products updates in ~/Sites/$last_stable_branch.  Yes to continue, No to quit now. " -n 1 -r
+  echo "\n"
   if [[ $REPLY =~ ^[Yy]$ ]]; then
     push_product_branch_changes
   else

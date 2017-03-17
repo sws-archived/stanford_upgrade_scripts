@@ -17,7 +17,7 @@ function update_stanford_profiles {
     cd ~/Sites/$profile
     git checkout $profile_master_branch
     git pull
-    if [ `git branch --list $new_uat_branch` ]; then
+    if [ `git branch --list "$new_uat_branch"` ]; then
       echo "git checkout $new_uat_branch"
       git checkout $new_uat_branch
     else
@@ -39,15 +39,23 @@ function update_stanford_profiles {
 
 function push_profile_branch_changes {
   cd ~/Sites/stanford-jumpstart-deployer
-  if [ `git branch --list $new_uat_branch` ]; then
-    git push $new_uat_branch
+  # unclear why it is saying these branches are behind remote counterparts
+  # and must be pulled.  Why I try to pull it says, no remote counterparts.
+  if [ `git rev-parse --abbrev-ref HEAD` == "$new_uat_branch" ]; then
+    echo "git push --set-upstream origin $new_uat_branch"
+    git push --set-upstream origin $new_uat_branch
   else
+    git checkout $new_uat_branch
+    echo "git push --set-upstream origin $new_uat_branch"
     git push --set-upstream origin $new_uat_branch
   fi
   cd ~/Sites/Stanford-Drupal-Profile
-  if [ `git branch --list $new_uat_branch` ]; then
-    git push $new_uat_branch
+  if [ `git rev-parse --abbrev-ref HEAD` == "$new_uat_branch" ]; then
+    echo "git push --set-upstream origin $new_uat_branch"
+    git push --set-upstream origin $new_uat_branch
   else
+    git checkout $new_uat_branch
+    echo "git push --set-upstream origin $new_uat_branch"
     git push --set-upstream origin $new_uat_branch
   fi
 }
@@ -57,8 +65,9 @@ function create_new_product_branch_in_gitolite_repository {
   echo "git checkout $last_stable_branch$suffix"
   git checkout $last_stable_branch$suffix
   echo "git checkout -b $new_uat_product_branch"
-  if [ `git branch --list $branch_name `]; then
+  if [ `git branch --list "$new_uat_product_branch"` ]; then
     git checkout $new_uat_product_branch
+    echo "existing branch checked out"
   else
     git checkout -b $new_uat_product_branch
   fi
@@ -66,7 +75,7 @@ function create_new_product_branch_in_gitolite_repository {
 }
 
 function build_product_site {
-  echo "setup_product_sites $branch_name"
+  echo "setup_product_sites $new_uat_branch_name"
   # download site files as branch_name
   if [ "$product" == "group" ] || [ "$product" == "dept" ]; then
     drush make -y --force-complete ~/Sites/Stanford-Drupal-Profile/make/$product.make ~/Sites/$new_uat_product_branch
@@ -94,17 +103,20 @@ function move_commit_modules {
     rm -rf ~/Sites/$last_stable_branch/sites/all/modules/stanford/$module
     if [[ "$module" == "stanford"* ]]; then
       mv ~/Sites/$new_uat_product_branch/sites/all/modules/stanford/$module ~/Sites/$last_stable_branch/sites/all/modules/stanford
+      new_version=$(sed -n -e 's/^version = \(.*\)/\1/p' ~/Sites/$last_stable_branch/sites/all/modules/stanford/$module/$module.info)
+      git add sites/all/modules/stanford/$module_name
     else
       mv ~/Sites/$new_uat_product_branch/sites/all/modules/contrib/$module ~/Sites/$last_stable_branch/sites/all/modules/contrib
+      new_version=$(sed -n -e 's/^version = \(.*\)/\1/p' ~/Sites/$last_stable_branch/sites/all/modules/contrib/$module/$module.info)
+      git add sites/all/modules/contrib/$module_name
     fi
     git status
-    git add sites/all/modules/contrib/$module_name
-    git status
-    git commit -m "Update module $module_name-7.x-$new_version"
+    echo "$module"
+    git commit -m "Update module $module-7.x-$new_version"
   done
 }
 
 function push_product_branch_changes {
-  cd ~/Sites/$new_uat_product_branch
+  cd ~/Sites/$last_stable_branch
   git push $new_uat_product_branch
 }
