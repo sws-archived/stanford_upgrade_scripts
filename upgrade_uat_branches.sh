@@ -21,14 +21,14 @@ date=`date +%Y%m%d`
 new_uat_branch="uat$date"
 
 declare -A products_list=(
-  ["jumpstart-academic"]="$new_uat_branch-jsa"
-  ["jumpstart-plus"]="$new_uat_branch-jsplus"
-  ["jumpstart"]="$new_uat_branch-jsv"
-  ["jumpstart-lab"]="$new_uat_branch-jsl"
-  ["jumpstart-engineering"]="$new_uat_branch-jse"
-  ["jumpstart-vpsa"]="$new_uat_branch-jsvpsa"
-  ["dept"]="$new_uat_branch-dept"
-  ["group"]="$new_uat_branch"
+  ["jumpstart-academic"]="-jsa"
+  ["jumpstart-plus"]="-jsplus"
+  ["jumpstart"]="-jsv"
+  ["jumpstart-lab"]="-jsl"
+  ["jumpstart-engineering"]="-jse"
+  ["jumpstart-vpsa"]="-jsvpsa"
+  ["dept"]="-dept"
+  ["group"]=""
 )
 
 declare -A stanford_profiles=(
@@ -53,7 +53,8 @@ else
 fi
 
 for product in ${!products_list[@]}; do
-  new_uat_product_branch="${products_list[$product]}"
+  suffix="${products_list[$product]}"
+  new_uat_product_branch="$new_uat_branch$suffix"
   create_new_product_branch_in_gitolite_repository
   build_product_site
   move_commit_modules

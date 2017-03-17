@@ -101,18 +101,21 @@ function move_commit_modules {
     git checkout $new_uat_product_branch
     git status
     rm -rf ~/Sites/$last_stable_branch/sites/all/modules/stanford/$module
-    if [[ "$module" == "stanford"* ]]; then
+    if [[ "$module" == "stanford"* ]] && [ -d ~/Sites/$new_uat_product_branch/sites/all/modules/stanford/$module ]; then
       mv ~/Sites/$new_uat_product_branch/sites/all/modules/stanford/$module ~/Sites/$last_stable_branch/sites/all/modules/stanford
       new_version=$(sed -n -e 's/^version = \(.*\)/\1/p' ~/Sites/$last_stable_branch/sites/all/modules/stanford/$module/$module.info)
       git add sites/all/modules/stanford/$module_name
-    else
+    elif [ -d ~/Sites/$new_uat_product_branch/sites/all/modules/contrib/$module ]; then
       mv ~/Sites/$new_uat_product_branch/sites/all/modules/contrib/$module ~/Sites/$last_stable_branch/sites/all/modules/contrib
       new_version=$(sed -n -e 's/^version = \(.*\)/\1/p' ~/Sites/$last_stable_branch/sites/all/modules/contrib/$module/$module.info)
       git add sites/all/modules/contrib/$module_name
+    else
+      echo "Not able to find module in built site"
+      exit
     fi
     git status
     echo "$module"
-    git commit -m "Update module $module-7.x-$new_version"
+    git commit -m "Update module $module-$new_version"
   done
 }
 
