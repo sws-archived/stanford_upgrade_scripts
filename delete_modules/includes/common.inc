@@ -5,7 +5,8 @@
 # bash function like PHP's in_array(). See http://eqcode.com/wiki/In_array
 function in_array() {
   NEEDLE="$1"; shift; ARRAY=("$@")
-  for VALUE in ${ARRAY[@]}; do [ "$VALUE" == "$NEEDLE" ] && echo 1 && return; done
+  # adjusted to remove quotes from status_selection and difference_selection array values
+  for VALUE in ${ARRAY[@]}; do VALUE=$(echo $VALUE | sed -e 's/^"//' -e 's/"$//') && [ "$VALUE" == "$NEEDLE" ] && echo 1 && return; done
   echo 0
 }
 
