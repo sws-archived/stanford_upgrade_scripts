@@ -26,7 +26,7 @@ function update_stanford_profiles {
     fi
     while IFS=, read module_name current_version new_version; do
       find_replace_module_versions
-    done < ~/Sites/stanford_upgrade_scripts/modules_to_upgrade.csv
+    done < ~/Sites/stanford_upgrade_scripts/upgrade_modules/modules_to_upgrade.csv
     if [ `git rev-parse --abbrev-ref HEAD` == "$new_uat_branch" ]; then
       git add *
       git commit -m "Module version updates for $new_uat_branch"
