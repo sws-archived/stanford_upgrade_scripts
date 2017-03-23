@@ -10,6 +10,11 @@ function in_array() {
   echo 0
 }
 
+function check_exit_status {
+  exitstatus=$?
+  [[ "$exitstatus" == 1 ]] && exit
+}
+
 ## Compares the md5 hash of two .info files for version sameness
 ## See /afs/ir/group/webservices/tools/jumpstart-4.0/includes/common.inc
 function get_excludes {

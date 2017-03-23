@@ -1,5 +1,6 @@
 #!/bin/bash
 
+source includes/common.inc
 source includes/generate_sites_options.inc
 
 timestamp=$(date +%Y%m%d%H%M%S)
@@ -11,15 +12,28 @@ sitename_prefix="/Users/kelliebrownell/Sites"
 sitename_suffix=""
 
 module_input=$(whiptail --title "Delete a module in sites/default" --inputbox "Which module in sites/default would you like to delete?" 10 60 3>&1 1>&2 2>&3)
+check_exit_status
+
 status_selection=$(whiptail --title "Module Status" --checklist "Only delete sites/default modules with the following status(es).  Note: we do not delete enabled modules." --notags 15 60 3 \
 not_installed "" on \
 disabled "" off \
 enabled "" off 3>&1 1>&2 2>&3)
+check_exit_status
 
-difference_selection=$(whiptail --title "sites/default Difference" --checklist "Only delete sites/default modules with the following differences from sites/all/modules." --notags 15 60 3 \
+difference_selection=$(whiptail --title "sites/default Difference" --checklist "Only delete sites/default modules with the following differences from sites/all/modules." --notags 15 60 5 \
 matches "" off \
 not_in_sites_all "" off \
-code_differs "" off 3>&1 1>&2 2>&3)
+default_older "" off \
+default_newer "" off \
+same_version_code_differs "" off 3>&1 1>&2 2>&3)
+check_exit_status
 
 generate_sites_options
 sites_selection=$(whiptail --title "Select Sites" --checklist "Only delete the sites/default copy of $module_input from the following sites. Press <space> to make your selection." 25 60 "${#sites_options[@]}" "${sites_options[@]}" --notags 3>&1 1>&2 2>&3)
+check_exit_status
+
+whiptail --title "Confirmation" --yes-button "PROCEED" --no-button "Cancel"  --yesno "Please confirm that you would like to delete $module_input from ${sites_selection[*]}.  Only if its status is ${status_selection[*]} and difference is ${difference_selection[*]}." 10 60 3>&1 1>&2 2>&3
+check_exit_status
+
+# Double check that the user chose PROCEED
+if [ "$exitstatus" == 0 ]; then remove_module_from_selected_sites; fi
