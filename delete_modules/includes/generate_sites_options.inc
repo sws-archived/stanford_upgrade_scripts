@@ -8,8 +8,13 @@ function generate_sites_options {
   echo "status selected: $status_selection" >> delete_modules_$timestamp.log
   echo "difference selected: $difference_selection" >> delete_modules_$timestamp.log
 
+  counter=0
+  number_of_sites=$(wc -l < sws_sites_list.csv | sed 's/ //g')
   # loop through a list of SWS sites
   while read sitename; do
+    (( counter++ ))
+    echo "$counter of $number_of_sites sites to check"
+
     module_all_path=$(find ~/Sites/$sitename/sites/all/modules -type d -name "$module_input")
     module_default_path=$(find ~/Sites/$sitename/sites/default/modules -type d -name "$module_input")
 
@@ -25,8 +30,6 @@ function generate_sites_options {
     if [ ! -z "$module_all_path" ] && [ ! -z "$module_default_path" ]; then
       sites_all_version=$(grep version $module_all_path/$module_input.info | sed -e 's|version = \"\(.*\)\"|\1|' | cut -d "-" -f 2-)
       sites_default_version=$(grep version $module_default_path/$module_input.info | sed -e 's|version = \"\(.*\)\"|\1|' | cut -d "-" -f 2-)
-      echo "$sites_all_version"
-      echo "$sites_default_version"
     fi
 
     # let's assume versions can be operated on as floats
