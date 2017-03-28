@@ -3,19 +3,10 @@
 source includes/common.inc
 source includes/generate_sites_options.inc
 source includes/remove_module_from_selected_sites.inc
+source variables.inc
+
 
 timestamp=$(date +%Y%m%d%H%M%S)
-# archives below this file size will be considered unreliable
-minimum_size=9000
-
-# used for drush alias
-server="uat"
-script_path="~/Sites"
-# absolute path to server's webroot, do trailing slash
-server_webroot="/var/www"
-# example of a sitename suffix might be public_html on sites1/2 servers
-sitename_suffix="public_html"
-
 # which module do you want to delete?
 module_input=$(whiptail --title "Delete a module in sites/default" --inputbox "Which module in sites/default would you like to delete?" 10 60 3>&1 1>&2 2>&3)
 check_exit_status
@@ -54,7 +45,6 @@ if [ "$exitstatus" == 0 ]; then
     # remove quotes
     site=$(echo $site | sed -e 's/^"//' -e 's/"$//')
     archive_site
-    uninstall_module
     delete_uninstalled_module
     check_site_loads
   done
