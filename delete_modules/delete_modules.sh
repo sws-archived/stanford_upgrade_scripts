@@ -5,6 +5,8 @@ source includes/generate_sites_options.inc
 source includes/remove_module_from_selected_sites.inc
 source variables.inc
 
+server_hostname=$(echo `hostname`)
+if [[ "$expected_hostname" != "$server_hostname" ]]; then echo "server expected $expected_hostname and server hostname $server_hostname differ."; fi
 
 timestamp=$(date +%Y%m%d%H%M%S)
 # which module do you want to delete?
@@ -28,7 +30,7 @@ check_exit_status
 
 # returns a list of sites with a module in sites/default that matches the selection criteria
 generate_sites_options
-# users can limit the deletion of module to an arbitraty subset of sites meeting the selectoin criteria
+# users can limit the deletion of module to an arbitraty subset of sites meeting the selection criteria
 if [ -z "${sites_options[*]}" ]; then
   echo "No sites meet your criteria" && exit
 else
