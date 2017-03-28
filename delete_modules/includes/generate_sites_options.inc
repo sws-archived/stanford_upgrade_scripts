@@ -55,9 +55,9 @@ function generate_sites_options {
     fi
 
     # evaluate version differences between sites/default and sites/all
-    if (( $sites_default_version < $sites_all_version )); then
+    if (awk 'BEGIN {($sites_default_module < $sites_all_module)}'); then
       module_difference_summary="default_older"
-    elif (( $sites_default_version == $sites_all_version )); then
+    elif (awk 'BEGIN {($sites_default_version < $sites_all_version)}'); then
       echo "module versions might be equal" >> log/delete-modules-$module_input-$timestamp.log
       module_code_difference=$(diff -bqrd --exclude=.git* "$module_all_path" "$module_default_path" 2> /dev/null)
       # check this only if we've already established an equality in module versions
