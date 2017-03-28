@@ -45,37 +45,34 @@ function generate_sites_options {
     # save module status
     module_status=$(drush @$server_alias.$sitename pmi $module_input --format=list --fields=status --field-labels=0 | sed -e 's/ /_/')
 
-    # start evaluating differences found between sites/default and sites/all
+    # start evaluating differences between sites/default and sites/all
     if [ -z "$module_all_path" ]; then module_difference_summary="not_in_sites_all"; fi
 
     # determine module version only if the same module was found in both sites/default and sites/all
     if [ ! -z "$module_all_path" ] && [ ! -z "$module_default_path" ]; then
-	sites_all_version=$(grep version $module_all_path/$module_input.info | sed -e 's|version = \"\(.*\)\"|\1|' | cut -d "-" -f 2-)
-	sites_default_version=$(grep version $module_default_path/$module_input.info | sed -e 's|version = \"\(.*\)\"|\1|' | cut -d "-" -f 2-)
-      fi
-
-      # evaluate version differences between sites/default and sites/all
-      if [ "$sites_default_version < $sites_all_version" ]; then
-	module_difference_summary="default_older"
-      elif [ "$sites_default_version > $sites_all_version" ]; then
-	module_difference_summary="default_newer"
-      elif [ "$sites_default_version == $sites_all_version" ]; then
-	echo "module versions might be equal" >> log/delete-modules-$module_input-$timestamp.log
-    	module_code_difference=$(diff -bqrd --exclude=.git* "$module_all_path" "$module_default_path" 2> /dev/null)
-      else
-	echo "not able to compare module versions" >> log/delete-modules-$module_input-$timestamp.log
-      fi
-
-      # save findings to log
-      echo "sites all version: $sites_all_version" >> log/delete-modules-$module_input-$timestamp.log
-      echo "sites default version: $sites_default_version" >> log/delete-modules-$module_input-$timestamp.log
-
-    # check this only if we've already established an equality in module versions
-    if [ ! -z "$module_code_difference" ] && [ ! -z "$module_all_path" ]; then
-      module_difference_summary="same_version_code_differs"
-    elif [ ! -z "$module_all_path" ]; then
-      module_difference_summary="matches"
+      sites_all_version=$(grep version $module_all_path/$module_input.info | sed -e 's|version = \"\(.*\)\"|\1|' | cut -d "-" -f 2-)
+      sites_default_version=$(grep version $module_default_path/$module_input.info | sed -e 's|version = \"\(.*\)\"|\1|' | cut -d "-" -f 2-)
     fi
+
+    # evaluate version differences between sites/default and sites/all
+    if (( $sites_default_version < $sites_all_version )); then
+      module_difference_summary="default_older"
+    elif (( $sites_default_version == $sites_all_version )); then
+      echo "module versions might be equal" >> log/delete-modules-$module_input-$timestamp.log
+      module_code_difference=$(diff -bqrd --exclude=.git* "$module_all_path" "$module_default_path" 2> /dev/null)
+      # check this only if we've already established an equality in module versions
+      if [ ! -z "$module_code_difference" ]; then
+	module_difference_summary="same_version_code_differs"
+      elif [ ! -z "$module_all_path" ]; then
+	module_difference_summary="matches"
+      fi
+    else
+      echo "not able to compare module versions" >> log/delete-modules-$module_input-$timestamp.log
+    fi
+
+    # save findings to log
+    echo "sites all version: $sites_all_version" >> log/delete-modules-$module_input-$timestamp.log
+    echo "sites default version: $sites_default_version" >> log/delete-modules-$module_input-$timestamp.log
 
     echo "module code difference: $module_code_difference" >> log/delete-modules-$module_input-$timestamp.log
     echo "module status: $module_status" >> log/delete-modules-$module_input-$timestamp.log
