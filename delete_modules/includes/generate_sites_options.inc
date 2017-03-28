@@ -31,8 +31,8 @@ function generate_sites_options {
     if [ ! -z "$sitename_suffix" ]; then sitename_with_suffix="$sitename/$sitename_suffix"; fi
 
     # save module paths for both sites/default and sites/all
-    module_all_path=$(find $server_webroot/$sitename_with_suffix/sites/all/modules/*/ -type d -name "$module_input")
-    module_default_path=$(find $server_webroot/$sitename_with_suffix/sites/default/modules/*/ -type d -name "$module_input")
+    module_all_path=$(find $server_webroot/$sitename_with_suffix/sites/all/modules/*/ -mindepth 1 -maxdepth 1 -type d -name "$module_input")
+    module_default_path=$(find $server_webroot/$sitename_with_suffix/sites/default/modules/*/ -mindepth 1 -maxdepth 1 -type d -name "$module_input")
 
     # save all information used to determine eligibility
     echo "sitename: $sitename" >> log/delete-modules-$module_input-$timestamp.log
@@ -55,9 +55,9 @@ function generate_sites_options {
     fi
 
     # evaluate version differences between sites/default and sites/all
-    if (awk 'BEGIN {($sites_default_module < $sites_all_module)}'); then
+    if echo $sites_default_version $sites_all_version | awk '{exit !($1 > $2)}'; then
       module_difference_summary="default_older"
-    elif (awk 'BEGIN {($sites_default_version < $sites_all_version)}'); then
+    elif echo $sites_default_version $sites_all_version | awk '{exit !($1 == $2)}'; then
       echo "module versions might be equal" >> log/delete-modules-$module_input-$timestamp.log
       module_code_difference=$(diff -bqrd --exclude=.git* "$module_all_path" "$module_default_path" 2> /dev/null)
       # check this only if we've already established an equality in module versions
@@ -66,6 +66,8 @@ function generate_sites_options {
       elif [ ! -z "$module_all_path" ]; then
 	module_difference_summary="matches"
       fi
+    elif echo $sites_default_version $sites_all_version | awk '{exit !($1 < $2)}'; then
+      echo "sites/default appears newer than sites/all" >> log/delete-modules-$module_input-$timestamp.log
     else
       echo "not able to compare module versions" >> log/delete-modules-$module_input-$timestamp.log
     fi

@@ -33,9 +33,9 @@ function archive_site {
 
 # delete module, assuming archive has been saved and module uninstalled
 function delete_uninstalled_module {
-  module_default_path=$(find $server_webroot/$site_with_suffix/sites/default/modules/*/ -type d -name "$module_input")
+  module_default_path=$(find $server_webroot/$site_with_suffix/sites/default/modules/*/ -mindepth 1 -maxdepth 1 -type d -name "$module_input")
   if [ ! -z "$module_default_path" ] && [[ "$module_default_path" == *"$module_input"* ]]; then
-    # rm -rf "$module_default_path"
+    rm -rf "$module_default_path"
     echo "deleted $module_default_path" 2>&1 | tee log/delete-modules-$module_input-$timestamp.log
   else
     echo "module not deleted, no path found" >> log/delete-modules-$module_input-$timestamp.log
