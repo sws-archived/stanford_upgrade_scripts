@@ -30,7 +30,7 @@ check_exit_status
 
 # returns a list of sites with a module in sites/default that matches the selection criteria
 generate_sites_options
-# users can limit the deletion of module to an arbitraty subset of sites meeting the selection criteria
+# users can limit the deletion of module to an arbitrary subset of sites meeting the selection criteria
 if [ -z "${sites_options[*]}" ]; then
   echo "No sites meet your criteria" && exit
 else
@@ -46,6 +46,7 @@ if [ "$exitstatus" == 0 ]; then
   for site in "${sites_selection[@]}"; do
     # remove quotes
     site=$(echo $site | sed -e 's/^"//' -e 's/"$//')
+    if [ ! -z "$sitename_suffix" ]; then site_with_suffix="$site/$sitename_suffix"; else site_with_suffix="$site"; fi
     archive_site
     delete_uninstalled_module
     check_site_loads
