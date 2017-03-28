@@ -6,9 +6,10 @@ source includes/common.inc
 # does not appear to be loading
 function check_site_loads {
   site_for_url=$(echo $site | sed -e 's/ds_//')
-  site_url="https://$expected_hostname/$site_for_url"
-  curl_result=$(curl -v --silent http://$site_url/ 2>&1 | grep '<div id="top-logo" class="span4"><a href="http://www.stanford.edu">')
+  site_url="https://$expected_hostname/$site_for_url/"
+  curl_result=$(curl --silent $site_url | grep '<div id="top-logo" class="span4"><a href="http://www.stanford.edu">')
   if [ -z "$curl_result" ]; then
+    echo "$curl_result"
     echo "WARNING: not able to determine whether the site is loading.  Visit $site_url to see how it's doing." 2>&1 | tee log/delete-modules-$module_input-$timestamp.log
   else
     echo "able to find top-logo element." 2>&1 | tee log/delete-modules-$module_input-$timestamp.log
@@ -35,8 +36,7 @@ function delete_uninstalled_module {
   module_default_path=$(find $server_webroot/$site_with_suffix/sites/default/modules/*/ -type d -name "$module_input")
   if [ ! -z "$module_default_path" ] && [[ "$module_default_path" == *"$module_input"* ]]; then
     # rm -rf "$module_default_path"
-    echo "deleted $module_default_path"
-    echo "deleted $module_default_path" >> log/delete-modules-$module_input-$timestamp.log
+    echo "deleted $module_default_path" 2>&1 | tee log/delete-modules-$module_input-$timestamp.log
   else
     echo "module not deleted, no path found" >> log/delete-modules-$module_input-$timestamp.log
   fi
