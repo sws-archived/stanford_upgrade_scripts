@@ -74,19 +74,16 @@ function reduce_list_by_status {
 function prepare_log_file {
   # if not log directory exists, create one
   if [ ! -d log ]; then mkdir log; fi
-  echo "sitename,overall inclusion,default path,all path,status selection,status inclusion,module status,difference selection,difference inclusion,code comparison,default version,all version,code difference" >> log/delete-modules-$module_input-$timestamp.csv
+  echo "sitename,overall inclusion,default path,all path,status selection,status inclusion,module status,difference selection,difference inclusion,code comparison,default version,all version,code difference" >> log/delete-modules-$module_input-$timestamp--selection.csv
 }
 
 function save_results_to_log {
-  echo "$sitename,$site_inclusion,$module_default_path,$module_all_path,$status_selection,$site_status_inclusion,$module_status,$difference_selection,$site_difference_inclusion,$code_comparison,$sites_default_version,$sites_all_version,$module_code_difference" >> log/delete-modules-$module_input-$timestamp.csv
+  echo "$sitename,$site_inclusion,$module_default_path,$module_all_path,$status_selection,$site_status_inclusion,$module_status,$difference_selection,$site_difference_inclusion,$code_comparison,$sites_default_version,$sites_all_version,$module_code_difference" >> log/delete-modules-$module_input-$timestamp--selection.csv
 }
 
 function generate_sites_options {
   sites_options=()
   save_list_of_sites_on_server
-
-  # Prepare log file
-  echo "Site," >> log/delete-modules-$module_input-$timestamp.csv
 
   # Report review progress to user
   counter=0

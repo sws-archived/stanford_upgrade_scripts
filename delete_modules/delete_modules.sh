@@ -55,11 +55,17 @@ check_exit_status
 # check to be sure the site still loads.
 if [ "$exitstatus" == 0 ]; then
   for site in "${sites_selection[@]}"; do
-    # remove quotes
+    # remove quotes from sites_selection values
     site=$(echo $site | sed -e 's/^"//' -e 's/"$//')
     if [ ! -z "$sitename_suffix" ]; then site_with_suffix="$site/$sitename_suffix"; else site_with_suffix="$site"; fi
+
+    # Log deletion process
+    echo "Site: $site" >> log/delete-modules-$module_input-$timestamp--deletion.log
+
+    # Archive and delete module from sites/default
     archive_site
-    delete_uninstalled_module
+    delete_module_from_sites_default
     check_site_loads
+    echo "\n" >> log/delete-modules-$module_input-$timestamp--deletion.log
   done
 fi
