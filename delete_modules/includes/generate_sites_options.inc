@@ -107,7 +107,7 @@ function generate_sites_options {
     reduce_list_by_difference
 
     # if status AND difference have both been found in user input, consider the site a candidate
-    if (( `in_array "$module_status" "${status_selection[@]}"` == 1 )) && (( `in_array "$module_difference_summary" "${difference_selection[@]}"` == 1 )); then
+    if (( `in_array "$module_status" "${status_selection[@]}"` == 1 )) && (( `in_array "$code_comparison" "${difference_selection[@]}"` == 1 )); then
       sites_options+=( ${sitename//\"} "" off// )
       site_inclusion="included"
     fi
