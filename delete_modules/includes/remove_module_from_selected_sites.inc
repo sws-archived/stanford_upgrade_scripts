@@ -9,34 +9,19 @@ function check_site_loads {
   curl_result=$(curl --silent $site_url | grep '<div id="top-logo" class="span4"><a href="http://www.stanford.edu">')
   if [ -z "$curl_result" ]; then
     echo "WARNING: Not able to determine whether the site is loading.  Visit $site_url to see how it's doing."
-    eco "Check: fail" >> log/delete-modules-$module_input-$timestamp--deletion.log
+    echo "Check: fail" >> log/delete-modules-$module_input-$timestamp--deletion.log
   else
     echo "Check: success" >> log/delete-modules-$module_input-$timestamp--deletion.log
   fi
 }
 
-# Archive site and make sure resulting file meets the user specified threshold
-function archive_site {
-  site_archive_path="/afs/ir/group/webservices/tmp/delete-modules-$site-$timestamp.tar.gz"
-  echo "Archiving $site."
-  drush @$server_alias.$site ard --destination="$site_archive_path"
-  echo "Checking file size."
-  if (( `wc -c < "$site_archive_path"` < $minimum_size )); then
-    echo "The archive might not have saved correctly; its filesize is quite low. Do you want to skip this site? " -n 1 -r
-    echo "\n"
-    [[ $REPLY =~ ^[Yy]$ ]] && echo "Skip: archive suspcious" >> log/delete-modules-$module_input-$timestamp--deletion.log && continue
-
-  fi
-  echo $site_archive_path
-}
-
 # Delete module, assuming archive has saved successfully
 function delete_module_from_sites_default {
   # Find path to sites/default module
-  module_default_path=$(find $server_webroot/$site_with_suffix/sites/default/modules/*/ -mindepth 1 -maxdepth 1 -type d -name "$module_input")
+  module_default_path=$(find $server_webroot/$site_with_suffix/sites/default/modules/* -mindepth 1 -maxdepth 1 -type d -name "$module_input")
 
   # Only remove directory if path includes module name
-  if [ ! -z "$module_default_path" ] && [[ "$module_default_path" == *"$module_input"* ]]; then
+  if [ ! -z "$module_default_path" ] && [[ "$module_default_path" == *"$module_input"* ]] && [[ "$archive_status" == "success" ]]; then
     rm -rf "$module_default_path"
     echo "Deleted: $module_default_path" >> log/delete-modules-$module_input-$timestamp--deletion.log
   else
@@ -52,4 +37,32 @@ function delete_module_from_sites_default {
   if [ -d "$module_default_path" ]; then
     echo "ERROR: failed to delete $module_default_path" >> log/delete-modules-$module_input-$timestamp--deletion.log
   fi
+}
+
+function check_archive_size {
+  echo "Checking file size."
+  if (( `wc -c < "$site_archive_path"` > $minimum_size )); then
+    archive_status="success"
+    echo "Archive path: $site_archive_path" >> log/delete-modules-$module_input-$timestamp--deletion.log
+    delete_module_from_sites_default
+  else
+    archive_status="suspicious"
+    echo "The archive might not have saved correctly; its filesize is quite low. Do you want to skip this site? " -n 1 -r
+    echo "\n"
+    [[ $REPLY =~ ^[Yy]$ ]] && continue
+  fi
+}
+
+# Archive site and make sure resulting file meets the user specified threshold
+function archive_site_and_delete_module_upon_success {
+  site_archive_path="$site_archive_path/delete-modules-$site-$timestamp.tar.gz"
+  echo "Archiving $site."
+  drush @$server_alias.$site ard --destination="$site_archive_path"
+  if [ -f "$site_archive_path" ]; then
+    check_archive_size
+  else
+    echo "Skip: Archive appears to have failed."
+    archive_status="failed"
+  fi
+  echo "Archive status: $archive_status" >> log/delete-modules-$module_input-$timestamp--deletion.log
 }

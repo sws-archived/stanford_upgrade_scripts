@@ -47,13 +47,15 @@ fi
 # and should be prepared to take responsibility for any consequences (both good and bad).  For example, if a site
 # fails to load after deleting the module, they'll want to contact the PM responsible for client communications and
 # see whether the team agrees to attempt a restore of the site from backup.
-whiptail --title "Confirmation" --yes-button "PROCEED" --no-button "Cancel"  --yesno "Please confirm that you would like to delete $module_input from ${sites_selection[*]}.  Only if its status is ${status_selection[*]} and difference is ${difference_selection[*]}." 10 60 3>&1 1>&2 2>&3
+authorized_by=$(whiptail --title "Authorization to Proceed" --inputbox "Please confirm that you would like to delete $module_input from ${sites_selection[*]} by submitting your SUNetID for the record." 10 60 3>&1 1>&2 2>&3)
 check_exit_status
 
-# If the user selects PROCEED, go forward with deleting the sites/default version of their chosen module
+# If the user submits two members of the SWS developer team, go forward with deleting the sites/default version of their chosen module
 # from all selected sites.  But first, we will save an archive of the site.  And afterwards, run a very simple
 # check to be sure the site still loads.
-if [ "$exitstatus" == 0 ]; then
+sws_developers=("kbrownel" "jbickar" "sheamck" "pookmish" "ggarvey")
+if (( `in_array "$authorized_by" "${sws_developers[@]}"` == 1 )); then
+  echo "Authorized by: $authorized_by" >> log/delete-modules-$module_input-$timestamp--deletion.log
   for site in "${sites_selection[@]}"; do
     # remove quotes from sites_selection values
     site=$(echo $site | sed -e 's/^"//' -e 's/"$//')
@@ -63,9 +65,10 @@ if [ "$exitstatus" == 0 ]; then
     echo "Site: $site" >> log/delete-modules-$module_input-$timestamp--deletion.log
 
     # Archive and delete module from sites/default
-    archive_site
-    delete_module_from_sites_default
+    archive_site_and_delete_module_upon_success
     check_site_loads
-    echo "\n" >> log/delete-modules-$module_input-$timestamp--deletion.log
   done
+else
+  echo "You do not appear to authorized to perform this action."
+  exit
 fi

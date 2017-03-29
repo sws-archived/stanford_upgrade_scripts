@@ -17,6 +17,10 @@
 # be reviewed for delete candidates. Please use the file's full path.
 # Example: "/afs/ir/group/webservices/tools/stanford_upgrade_scripts/sws_sites_list.csv"
 #
+# SITE_ARCHIVE_PATH:
+# Specify where the script should save site archives.
+# Example: "/afs/ir/group/webservices/tmp"
+#
 # EXPECTED_HOSTNAME:
 # This script is destructive.  Even when running it on sites-dev
 # or sites-uat, you will be deleting the same site files (stored
@@ -50,7 +54,8 @@
 # Example: "public_html"
 
 minimum_size=9000
-sws_sites_list_path="/afs/ir/group/webservices/tools/stanford_upgrade_scripts/sws_sites_list.csv"
+sws_sites_list_path="/afs/ir/group/webservices/tools/stanford_upgrade_scripts/delete_modules/sws_sites_list.csv"
+site_archive_path="/afs/ir/group/webservices/tmp"
 expected_hostname="sites-uat.stanford.edu"
 server_alias="suat"
 server_webroot="/var/www"
