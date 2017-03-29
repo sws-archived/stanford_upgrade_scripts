@@ -4,33 +4,38 @@ source includes/common.inc
 source includes/generate_sites_options.inc
 source includes/remove_module_from_selected_sites.inc
 source variables.inc
+timestamp=$(date +%Y%m%d%H%M%S)
 
+# Check to be sure this script is being run on the server expected.
 server_hostname=$(echo `hostname`)
 if [[ "$expected_hostname" != "$server_hostname" ]]; then echo "server expected $expected_hostname and server hostname $server_hostname differ."; fi
 
-timestamp=$(date +%Y%m%d%H%M%S)
-# which module do you want to delete?
+# Save user input on which module to delete.  Can only accept one module at this time.
 module_input=$(whiptail --title "Delete a module in sites/default" --inputbox "Which module in sites/default would you like to delete?" 10 60 3>&1 1>&2 2>&3)
 check_exit_status
 
-# limit deletion of module to this status
+# Save user input on which status of modules can be deleted.  Accepts multiple choices.
 status_selection=$(whiptail --title "Module Status" --checklist "Only delete sites/default modules with any (ie. OR) of the following status(es).  Note: we do not delete enabled modules." --notags 15 60 3 \
 not_installed "" on \
 disabled "" off \
 enabled "" off 3>&1 1>&2 2>&3)
 check_exit_status
 
-# further limit deletion of module based on a comparison with the same module in sites/all
+# Save user input on what difference to the same module in sites/all might qualify the module files in sites/default for deletion.
 difference_selection=$(whiptail --title "sites/default Difference" --checklist "Only delete sites/default modules with any (ie. OR) of the following differences from sites/all/modules." --notags 15 60 5 \
 matches "" off \
 not_in_sites_all "" off \
 default_older "" off \
-same_version_code_differs "" off 3>&1 1>&2 2>&3)
+code_differs "" off 3>&1 1>&2 2>&3)
 check_exit_status
 
-# returns a list of sites with a module in sites/default that matches the selection criteria
+# Returns a list of sites with a module in sites/default that matches the selection criteria.
+prepare_log_file
 generate_sites_options
-# users can limit the deletion of module to an arbitrary subset of sites meeting the selection criteria
+
+# Just because the site's module matches a user's status and difference criteria, does not mean they wish
+# the module to be deleted at this time.  Given users the option to delete the module from a subset of
+# site candidates.
 if [ -z "${sites_options[*]}" ]; then
   echo "No sites meet your criteria" && exit
 else
@@ -38,10 +43,16 @@ else
   check_exit_status
 fi
 
+# This is a destructive process.  Forewarn the user that they have been given a second chance to check their work
+# and should be prepared to take responsibility for any consequences (both good and bad).  For example, if a site
+# fails to load after deleting the module, they'll want to contact the PM responsible for client communications and
+# see whether the team agrees to attempt a restore of the site from backup.
 whiptail --title "Confirmation" --yes-button "PROCEED" --no-button "Cancel"  --yesno "Please confirm that you would like to delete $module_input from ${sites_selection[*]}.  Only if its status is ${status_selection[*]} and difference is ${difference_selection[*]}." 10 60 3>&1 1>&2 2>&3
 check_exit_status
 
-# double check that the user chose PROCEED
+# If the user selects PROCEED, go forward with deleting the sites/default version of their chosen module
+# from all selected sites.  But first, we will save an archive of the site.  And afterwards, run a very simple
+# check to be sure the site still loads.
 if [ "$exitstatus" == 0 ]; then
   for site in "${sites_selection[@]}"; do
     # remove quotes
