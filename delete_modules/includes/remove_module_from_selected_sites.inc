@@ -10,9 +10,9 @@ function check_site_loads {
   curl_result=$(curl --silent $site_url | grep '<div id="top-logo" class="span4"><a href="http://www.stanford.edu">')
   if [ -z "$curl_result" ]; then
     echo "$curl_result"
-    echo "WARNING: not able to determine whether the site is loading.  Visit $site_url to see how it's doing." 2>&1 | tee log/delete-modules-$module_input-$timestamp.log
+    echo "WARNING: not able to determine whether the site is loading.  Visit $site_url to see how it's doing." >> log/delete-modules-$module_input-$timestamp.log
   else
-    echo "able to find top-logo element." 2>&1 | tee log/delete-modules-$module_input-$timestamp.log
+    echo "able to find top-logo element." >> log/delete-modules-$module_input-$timestamp.log
   fi
 }
 
@@ -36,7 +36,7 @@ function delete_uninstalled_module {
   module_default_path=$(find $server_webroot/$site_with_suffix/sites/default/modules/*/ -mindepth 1 -maxdepth 1 -type d -name "$module_input")
   if [ ! -z "$module_default_path" ] && [[ "$module_default_path" == *"$module_input"* ]]; then
     rm -rf "$module_default_path"
-    echo "deleted $module_default_path" 2>&1 | tee log/delete-modules-$module_input-$timestamp.log
+    echo "deleted $module_default_path" >> log/delete-modules-$module_input-$timestamp.log
   else
     echo "module not deleted, no path found" >> log/delete-modules-$module_input-$timestamp.log
   fi
