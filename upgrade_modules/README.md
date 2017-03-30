@@ -1,4 +1,4 @@
-# [Stanford Upgrade Scripts](https://github.com/SU-SWS/stanford_upgrade_scripts)
+# [Upgrade Modules](https://github.com/SU-SWS/stanford_upgrade_scripts/tree/master/upgrade_modules)
 Scripts to upgrade all profiles and product branches.
 ##### Version: 1.x
 
