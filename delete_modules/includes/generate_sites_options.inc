@@ -22,45 +22,37 @@ function find_module_paths {
   module_default_path=$(find $server_webroot/$sitename_with_suffix/sites/default/modules/* -mindepth 1 -maxdepth 1 -type d -name $module_input)
 }
 
-function compare_module_paths {
-  # Skip to the next iteration, if module was not found in sites/default
-  [ -z "$module_default_path" ] && continue
-  if [ -z "$module_all_path" ]; then code_comparison="not_in_sites_all"; fi
-}
-
-function find_and_compare_module_versions {
-  # Determine module version only if the same module was found in both sites/default and sites/all
-  if [ ! -z "$module_all_path" ] && [ ! -z "$module_default_path" ]; then
-    sites_all_version=$(grep version $module_all_path/$module_input.info | sed -e 's|version = \"\(.*\)\"|\1|' | cut -d "-" -f 2-)
-    sites_default_version=$(grep version $module_default_path/$module_input.info | sed -e 's|version = \"\(.*\)\"|\1|' | cut -d "-" -f 2-)
-    compare_module_versions
-  fi
-}
-
-function find_module_code_differences {
-  # Check this only if we've already established an equality in module versions
-  module_code_difference=$(diff -bqrd --exclude=.git* "$module_all_path" "$module_default_path" 2> /dev/null)
-  if [ ! -z "$module_code_difference" ]; then
-    code_comparison="code_differs"
-  elif [ ! -z "$module_all_path" ]; then
-    code_comparison="matches"
-    module_code_difference="matches"
-  else
-    code_comparison="could not establish comparison"
-  fi
-}
-
 function compare_module_versions {
   # Evaluate version differences between sites/default and sites/all
   if echo $sites_default_version $sites_all_version | awk '{exit !($1 < $2)}'; then
     code_comparison="default_older"
-  elif echo $sites_default_version $sites_all_version | awk '{exit !($1 == $2)}'; then
-    code_comparison="equal"
-    find_module_code_differences
-  elif echo $sites_default_version $sites_all_version | awk '{exit !($1 > $2)}'; then
-    code_comparison="default_newer"
   else
-    code_comparison="not able to compare versions"
+    code_comparison="code_differs"
+  fi
+}
+
+function find_module_versions {
+  # Assumes function will only be called if the module is present in both sites/default and sites/all
+  sites_all_version=$(grep version $module_all_path/$module_input.info | sed -e 's|version = \"\(.*\)\"|\1|' | cut -d "-" -f 2-)
+  sites_default_version=$(grep version $module_default_path/$module_input.info | sed -e 's|version = \"\(.*\)\"|\1|' | cut -d "-" -f 2-)
+}
+
+function find_module_code_differences {
+  module_code_difference=$(diff -bqrd --exclude=.git* "$module_all_path" "$module_default_path" 2> /dev/null)
+  if [ -z "$module_code_difference" ]; then
+    code_comparison="matches"
+  else
+    find_module_versions
+    compare_module_versions
+  fi
+}
+
+function compare_module_paths {
+  # Skip to the next iteration, if module was not found in sites/default
+  [ -z "$module_default_path" ] && continue
+  if [ -z "$module_all_path" ]; then
+    code_comparison="not_in_sites_all"
+  else
     find_module_code_differences
   fi
 }
@@ -102,13 +94,12 @@ function generate_sites_options {
     (( counter++ ))
     echo "$counter $sitename of $number_of_sites sites to check"
 
+    # finding and comparison module versions and code differences happens within compare_module_paths
     find_module_paths
     compare_module_paths
 
     # find_module_status
     module_status=$(drush @$server_alias.$sitename pmi $module_input --format=list --fields=status --field-labels=0 | sed -e 's/ /_/')
-
-    find_and_compare_module_versions
 
     reduce_list_by_status
     reduce_list_by_difference
