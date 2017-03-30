@@ -68,6 +68,6 @@ if (( `in_array "$authorized_by" "${sws_developers[@]}"` == 1 )) && [ "$authoriz
     archive_site_and_delete_module_upon_success
   done
 else
-  echo "You do not appear to authorized to perform this action, or you have entered a SUNetID other than your own.  Please visit: ethics.stanford.edu."
+  echo "You do not appear to be authorized to perform this action, or you have entered a SUNetID other than your own.  Please visit: https://ethics.stanford.edu."
   exit
 fi
