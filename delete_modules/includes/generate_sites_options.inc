@@ -61,6 +61,8 @@ function reduce_list_by_difference {
   # determine whether module differences match user input
   if (( `in_array "$code_comparison" "${difference_selection[@]}"` == 1 )); then
     site_difference_inclusion="included"
+  else
+    site_difference_inclusion="excluded"
   fi
 }
 
@@ -68,6 +70,8 @@ function reduce_list_by_status {
   # determine whether module status matches user input
   if (( `in_array "$module_status" "${status_selection[@]}"` == 1 )); then
     site_status_inclusion="included"
+  else
+    site_status_inclusion="excluded"
   fi
 }
 
@@ -89,8 +93,6 @@ function generate_sites_options {
   counter=0
   number_of_sites=$(wc -l < sws_sites_list.csv | sed 's/ //g')
 
-IFS='
-'
   # Loop through the sites found in sites_list file
   for sitename in $(cat $sws_sites_list_path); do
     (( counter++ ))
