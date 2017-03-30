@@ -54,7 +54,7 @@ check_exit_status
 # from all selected sites.  But first, we will save an archive of the site.  And afterwards, run a very simple
 # check to be sure the site still loads.
 sws_developers=("kbrownel" "jbickar" "sheamck" "pookmish" "ggarvey")
-if (( `in_array "$authorized_by" "${sws_developers[@]}"` == 1 )); then
+if (( `in_array "$authorized_by" "${sws_developers[@]}"` == 1 )) && [ "$authorized_by" == `whoami` ] ; then
   echo "Authorized by: $authorized_by" >> log/delete-modules-$module_input-$timestamp--deletion.log
   for site in "${sites_selection[@]}"; do
     # remove quotes from sites_selection values
@@ -68,6 +68,6 @@ if (( `in_array "$authorized_by" "${sws_developers[@]}"` == 1 )); then
     archive_site_and_delete_module_upon_success
   done
 else
-  echo "You do not appear to authorized to perform this action."
+  echo "You do not appear to authorized to perform this action, or you have entered a SUNetID other than your own.  Please visit: ethics.stanford.edu."
   exit
 fi

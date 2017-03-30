@@ -107,7 +107,7 @@ IFS='
     reduce_list_by_difference
 
     # if status AND difference have both been found in user input, consider the site a candidate
-    if (( `in_array "$module_status" "${status_selection[@]}"` == 1 )) && (( `in_array "$code_comparison" "${difference_selection[@]}"` == 1 )); then
+    if [ "$site_status_inclusion" == "included" ] && [ "$site_difference_inclusion" == "included" ]; then
       sites_options+=( ${sitename//\"} "$module_status | $code_comparison" off// )
       site_inclusion="included"
     fi
