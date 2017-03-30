@@ -8,7 +8,7 @@ timestamp=$(date +%Y%m%d%H%M%S)
 
 # Check to be sure this script is being run on the server expected.
 server_hostname=$(echo `hostname`)
-if [[ "$expected_hostname" != "$server_hostname" ]]; then echo "server expected $expected_hostname and server hostname $server_hostname differ."; fi
+if [[ "$expected_hostname" != "$server_hostname" ]]; then echo "server expected $expected_hostname and server hostname $server_hostname differ." && exit; fi
 
 # Save user input on which module to delete.  Can only accept one module at this time.
 module_input=$(whiptail --title "Delete a module in sites/default" --inputbox "Which module in sites/default would you like to delete?" 10 60 3>&1 1>&2 2>&3)
