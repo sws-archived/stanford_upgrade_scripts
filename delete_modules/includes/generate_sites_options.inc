@@ -18,8 +18,8 @@ function find_module_paths {
   fi
 
   # Save module paths for both sites/default and sites/all
-  module_all_path=$(find $server_webroot/$sitename_with_suffix/sites/all/modules/* -mindepth 1 -maxdepth 1 -type d -name $module_input)
-  module_default_path=$(find $server_webroot/$sitename_with_suffix/sites/default/modules/* -mindepth 1 -maxdepth 1 -type d -name $module_input)
+  module_all_path=$(find $server_webroot/$sitename_with_suffix/sites/all/modules/* -mindepth 1 -maxdepth 1 -type d -name $module_input 2>/dev/null)
+  module_default_path=$(find $server_webroot/$sitename_with_suffix/sites/default/modules/* -mindepth 1 -maxdepth 1 -type d -name $module_input 2>/dev/null)
 }
 
 function compare_module_versions {
@@ -89,8 +89,10 @@ function generate_sites_options {
   counter=0
   number_of_sites=$(wc -l < sws_sites_list.csv | sed 's/ //g')
 
+IFS='
+'
   # Loop through the sites found in sites_list file
-  while read sitename; do
+  for sitename in $(cat $sws_sites_list_path); do
     (( counter++ ))
     echo "$counter $sitename of $number_of_sites sites to check"
 
@@ -111,5 +113,5 @@ function generate_sites_options {
     fi
 
     save_results_to_log
-  done < $sws_sites_list_path
+  done
 }
