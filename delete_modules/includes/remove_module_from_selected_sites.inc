@@ -15,6 +15,13 @@ function check_site_loads {
   fi
 }
 
+function check_module_deleted {
+  # Record if module still appears in sites/default after attempting to delete it
+  if [ -d "$module_default_path" ]; then
+    echo "ERROR: failed to delete $module_default_path" >> log/delete-modules-$module_input-$timestamp--deletion.log
+  fi
+}
+
 # Delete module, assuming archive has saved successfully
 function delete_module_from_sites_default {
   # Find path to sites/default module
@@ -24,32 +31,29 @@ function delete_module_from_sites_default {
   if [ ! -z "$module_default_path" ] && [[ "$module_default_path" == *"$module_input"* ]] && [[ "$archive_status" == "success" ]]; then
     rm -rf "$module_default_path"
     echo "Deleted: $module_default_path" >> log/delete-modules-$module_input-$timestamp--deletion.log
+
+    # Clear cache, rebuild registry and update database
+    drush @$server_alias.$site rr
+    drush @$server_alias.$site updb -y
+    drush @$server_alias.$site cc all
+
+    check_site_loads
+    check_module_deleted
   else
     echo "Skip: module not deleted, no path found" >> log/delete-modules-$module_input-$timestamp--deletion.log
-  fi
-
-  # Clear cache, rebuild registry and update database
-  drush @$server_alias.$site rr
-  drush @$server_alias.$site updb -y
-  drush @$server_alias.$site cc all
-
-  # Record if module still appears in sites/default after attempting to delete it
-  if [ -d "$module_default_path" ]; then
-    echo "ERROR: failed to delete $module_default_path" >> log/delete-modules-$module_input-$timestamp--deletion.log
   fi
 }
 
 function check_archive_size {
-  echo "Checking file size."
-  if (( `wc -c < "$site_archive_path"` > $minimum_size )); then
+  archive_file_size=$(wc -c < "$site_archive_path")
+  echo "File size: $archive_file_size."
+  if (( $archive_file_size > $minimum_size )); then
     archive_status="success"
     echo "Archive path: $site_archive_path" >> log/delete-modules-$module_input-$timestamp--deletion.log
     delete_module_from_sites_default
   else
     archive_status="suspicious"
     echo "The archive might not have saved correctly; its filesize is quite low. Do you want to skip this site? " -n 1 -r
-    echo "\n"
-    [[ $REPLY =~ ^[Yy]$ ]] && continue
   fi
 }
 

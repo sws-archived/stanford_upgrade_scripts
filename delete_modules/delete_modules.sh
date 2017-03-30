@@ -66,7 +66,6 @@ if (( `in_array "$authorized_by" "${sws_developers[@]}"` == 1 )); then
 
     # Archive and delete module from sites/default
     archive_site_and_delete_module_upon_success
-    check_site_loads
   done
 else
   echo "You do not appear to authorized to perform this action."
