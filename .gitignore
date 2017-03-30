@@ -1,2 +1,3 @@
 delete_modules/variables.inc
 delete_modules/log/*
+delete_modules/sws_sites_list.csv
