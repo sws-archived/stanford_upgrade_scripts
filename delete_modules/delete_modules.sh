@@ -39,7 +39,7 @@ generate_sites_options
 if [ -z "${sites_options[*]}" ]; then
   echo "No sites meet your criteria" && exit
 else
-  sites_selection=$(whiptail --title "Select Sites" --checklist "Only delete the sites/default copy of $module_input from the following sites. Press <space> to make your selection.  Sites appear on this list if they have met at least one of your status criteria AND at least one of your difference criteria." 25 60 "${#sites_options[@]}" "${sites_options[@]}" --notags 3>&1 1>&2 2>&3)
+  sites_selection=$(whiptail --title "Select Sites" --checklist "Only delete the sites/default copy of $module_input from the following sites. Press <space> to make your selection.  Sites appear on this list if they have met at least one of your status criteria AND at least one of your difference criteria." 45 60 15 "${sites_options[@]}" --notags 3>&1 1>&2 2>&3)
   check_exit_status
 fi
 

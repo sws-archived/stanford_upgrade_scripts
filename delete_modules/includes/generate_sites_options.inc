@@ -5,7 +5,8 @@ source variables.inc
 
 function save_list_of_sites_on_server {
   if [ -z "$sws_sites_list_path" ]; then
-    find $server_webroot -type d -mindepth 1 -maxdepth 1 -exec basename {} \; > sws_sites_list.csv
+    find $server_webroot -mindepth 1 -maxdepth 1 -type d -exec basename {} \; > sws_sites_list.csv
+    sws_sites_list_path=$(echo "`pwd`/sws_sites_list.csv")
   fi
 }
 
