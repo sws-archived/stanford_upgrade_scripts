@@ -83,7 +83,7 @@ function prepare_log_file {
 }
 
 function save_results_to_log {
-  echo "$sitename,$site_inclusion,$module_default_path,$module_all_path,$status_selection,$site_status_inclusion,$module_status,$difference_selection,$site_difference_inclusion,$code_comparison,$sites_default_version,$sites_all_version,$module_code_difference" >> log/delete-modules-$module_input-$timestamp--selection.csv
+  echo "$sitename,$site_inclusion,$module_default_path,$module_all_path,$status_selection,$site_status_inclusion,$module_status,$difference_selection,$site_difference_inclusion,$code_comparison,$sites_default_version,$sites_all_version,\"$module_code_difference\"" >> log/delete-modules-$module_input-$timestamp--selection.csv
 }
 
 function generate_sites_options {
