@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -i
 
 source includes/common.inc
 source includes/generate_sites_options.inc
@@ -32,6 +32,9 @@ check_exit_status
 # Returns a list of sites with a module in sites/default that matches the selection criteria.
 prepare_log_file
 generate_sites_options
+i
+LINES=$(tput lines)
+COLUMNS=$(tput cols)
 
 # Just because the site's module matches a user's status and difference criteria, does not mean they wish
 # the module to be deleted at this time.  Given users the option to delete the module from a subset of
@@ -39,7 +42,7 @@ generate_sites_options
 if [ -z "${sites_options[*]}" ]; then
   echo "No sites meet your criteria" && exit
 else
-  sites_selection=$(whiptail --title "Select Sites" --checklist "Only delete the sites/default copy of $module_input from the following sites. Press <space> to make your selection.  Sites appear on this list if they have met at least one of your status criteria AND at least one of your difference criteria." 45 60 15 "${sites_options[@]}" --notags 3>&1 1>&2 2>&3)
+  eval $( resize ) sites_selection=$(whiptail --title "Select Sites" --checklist "Only delete the sites/default copy of $module_input from the following sites. Press <space> to make your selection.  Sites appear on this list if they have met at least one of your status criteria AND at least one of your difference criteria." $LINES $COLUMNS $(( $LINES - 12 )) "${sites_options[@]}" --notags --scrolltext 3>&1 1>&2 2>&3)
   check_exit_status
 fi
 
