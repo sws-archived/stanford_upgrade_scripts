@@ -45,11 +45,11 @@ function delete_module_from_sites_default {
 }
 
 function check_archive_size {
-  archive_file_size=$(wc -c < "$site_archive_path")
+  archive_file_size=$(wc -c < "$site_archive_file")
   echo "File size: $archive_file_size."
   if (( $archive_file_size > $minimum_size )); then
     archive_status="success"
-    echo "Archive path: $site_archive_path" >> log/delete-modules-$module_input-$timestamp--deletion.log
+    echo "Archive path: $site_archive_file" >> log/delete-modules-$module_input-$timestamp--deletion.log
     delete_module_from_sites_default
   else
     archive_status="suspicious"
@@ -59,10 +59,10 @@ function check_archive_size {
 
 # Archive site and make sure resulting file meets the user specified threshold
 function archive_site_and_delete_module_upon_success {
-  site_archive_path="$site_archive_path/delete-modules-$site-$timestamp.tar.gz"
+  site_archive_file="$site_archive_path/delete-modules-$site-$timestamp.tar.gz"
   echo "Archiving $site."
-  drush @$server_alias.$site ard --destination="$site_archive_path"
-  if [ -f "$site_archive_path" ]; then
+  drush @$server_alias.$site ard --destination="$site_archive_file"
+  if [ -f "$site_archive_file" ]; then
     check_archive_size
   else
     echo "Skip: Archive appears to have failed."
