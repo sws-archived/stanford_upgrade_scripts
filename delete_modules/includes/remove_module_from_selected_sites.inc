@@ -6,7 +6,7 @@ source includes/common.inc
 function check_site_loads {
   site_for_url=$(echo $site | sed -e 's/ds_//')
   site_url="https://$expected_hostname/$site_for_url/"
-  curl_result=$(curl -l --silent $site_url | grep '<a href="http://www.stanford.edu"')
+  curl_result=$(curl -L --silent https://sites1.stanford.edu/jumpstart-chembio/ | grep 'top-logo')
   if [ -z "$curl_result" ]; then
     echo "WARNING: Not able to determine whether the site is loading.  Visit $site_url to see how it's doing."
     echo "Check: fail" >> log/delete-modules-$module_input-$timestamp--deletion.log
