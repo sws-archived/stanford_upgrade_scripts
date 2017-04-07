@@ -2,11 +2,11 @@
 
 function find_module_locations {
   if [[ $module_name == *"stanford"* ]]; then
-    grep -r "\[$module_name\]\[download\]\[tag\] \= .*" . >> ~/Sites/stanford_upgrade_scripts/upgrade_modules/module-locations.csv
+    module_locations+=$(grep -r "\[$module_name\]\[download\]\[tag\] \= .*" .)
   elif [[ $module_name == *"open_framework"* ]]; then
-    echo `grep -r "\[$module_name\]\[download\]\[tag\] \= .*" .` >> ~/Sites/stanford_upgrade_scripts/upgrade_modules/module-locations.csv
+    module_locations+=(grep -r "\[$module_name\]\[download\]\[tag\] \= .*" .)
   else
-    echo `grep -r "\[$module_name\]\[version\] \= .*" .` >> ~/Sites/stanford_upgrade_scripts/upgrade_modules/module-locations.csv
+    module_locations+=(grep -r "\[$module_name\]\[version\] \= .*" .)
   fi
 }
 
@@ -20,13 +20,29 @@ function find_replace_module_versions {
   fi
 }
 
+function parse_module_location_results {
+  for location in "${module_locations[*]}"; do
+    module_version=$(echo $location | sed 's|.*=||' | sed 's|"||g' | sed 's| ||g')
+    base_directory=$(echo $location | sed 's|^./||;s|/.*||')
+    if [[ "$base_directory" != "make" ]]; then
+      product=$(echo $location | sed 's|^./$base_directory/product/||;s|/.*||')
+    else
+      product="self-service"
+    fi
+    echo "$module_name,$module_version,$base_directory,$product"
+  done
+}
+
 function find_modules_in_profiles {
+  module_locations=()
   while read module_name; do
     for profile in ${!stanford_profiles[@]}; do
       cd ~/Sites/$profile
       find_module_locations
     done
   done < ~/Sites/stanford_upgrade_scripts/upgrade_modules/module_list.csv
+  parse_module_location_results
+  echo "${module_locations[*]}"
 }
 
 function update_stanford_profiles {
