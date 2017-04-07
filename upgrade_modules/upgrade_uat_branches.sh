@@ -36,6 +36,9 @@ declare -A stanford_profiles=(
   ["Stanford-Drupal-Profile"]="7.x-2.x"
 )
 
+find_modules_in_profiles
+exit
+
 # download gitolite repository and checkout last stable branch
 if [ ! -d ~/Sites/$last_stable_branch ]; then
   git clone -b $last_stable_branch gitolite@git.stanford.edu:web/drupal-sites ~/Sites/$last_stable_branch
@@ -62,7 +65,7 @@ for product in ${!products_list[@]}; do
   echo "\n"
   if [[ $REPLY =~ ^[Yy]$ ]]; then
     push_product_branch_changes
-  else
+  else2
     exit
   fi
 done

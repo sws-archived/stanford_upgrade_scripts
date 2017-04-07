@@ -1,5 +1,15 @@
 #!/bin/bash
 
+function find_module_locations {
+  if [[ $module_name == *"stanford"* ]]; then
+    grep -r "\[$module_name\]\[download\]\[tag\] \= .*" . >> ~/Sites/stanford_upgrade_scripts/upgrade_modules/module-locations.csv
+  elif [[ $module_name == *"open_framework"* ]]; then
+    echo `grep -r "\[$module_name\]\[download\]\[tag\] \= .*" .` >> ~/Sites/stanford_upgrade_scripts/upgrade_modules/module-locations.csv
+  else
+    echo `grep -r "\[$module_name\]\[version\] \= .*" .` >> ~/Sites/stanford_upgrade_scripts/upgrade_modules/module-locations.csv
+  fi
+}
+
 function find_replace_module_versions {
   if [[ $module_name == *"stanford"* ]]; then
     find . -name "*.make" -exec sed -i '' 's/'$module_name'\]\[download\]\[tag\] \= \"'$current_version'\"/'$module_name'\]\[download\]\[tag\] \= \"'$new_version'\"/g' "{}" \;
@@ -8,6 +18,15 @@ function find_replace_module_versions {
   else
     find . -name "*.make" -exec sed -i '' 's/'$module_name'\]\[version\] \= \"'$current_version'\"/'$module_name'\]\[version\] \= \"'$new_version'\"/g' "{}" \;
   fi
+}
+
+function find_modules_in_profiles {
+  while read module_name; do
+    for profile in ${!stanford_profiles[@]}; do
+      cd ~/Sites/$profile
+      find_module_locations
+    done
+  done < ~/Sites/stanford_upgrade_scripts/upgrade_modules/module_list.csv
 }
 
 function update_stanford_profiles {
