@@ -2,35 +2,24 @@
 
 function find_module_locations {
   if [[ $module_name == *"stanford"* ]]; then
-    module_locations+=$(grep -r "\[$module_name\]\[download\]\[tag\] \= .*" .)
+    module_location=$(grep -r "\[$module_name\]\[download\]\[tag\] \= .*" .)
   elif [[ $module_name == *"open_framework"* ]]; then
-    module_locations+=(grep -r "\[$module_name\]\[download\]\[tag\] \= .*" .)
+    module_location=$(grep -r "\[$module_name\]\[download\]\[tag\] \= .*" .)
   else
-    module_locations+=(grep -r "\[$module_name\]\[version\] \= .*" .)
+    module_location=$(grep -r "\[$module_name\]\[version\] \= .*" .)
   fi
-}
-
-function find_replace_module_versions {
-  if [[ $module_name == *"stanford"* ]]; then
-    find . -name "*.make" -exec sed -i '' 's/'$module_name'\]\[download\]\[tag\] \= \"'$current_version'\"/'$module_name'\]\[download\]\[tag\] \= \"'$new_version'\"/g' "{}" \;
-  elif [[ $module_name == *"open_framework"* ]]; then
-    find . -name "*.make" -exec sed -i '' 's/'$module_name'\]\[download\]\[tag\] \= \"'$current_version'\"/'$module_name'\]\[download\]\[tag\] \= \"'$new_version'\"/g' "{}" \;
-  else
-    find . -name "*.make" -exec sed -i '' 's/'$module_name'\]\[version\] \= \"'$current_version'\"/'$module_name'\]\[version\] \= \"'$new_version'\"/g' "{}" \;
-  fi
+  parse_module_location_results
 }
 
 function parse_module_location_results {
-  for location in "${module_locations[*]}"; do
-    module_version=$(echo $location | sed 's|.*=||' | sed 's|"||g' | sed 's| ||g')
-    base_directory=$(echo $location | sed 's|^./||;s|/.*||')
-    if [[ "$base_directory" != "make" ]]; then
-      product=$(echo $location | sed 's|^./$base_directory/product/||;s|/.*||')
-    else
-      product="self-service"
-    fi
-    echo "$module_name,$module_version,$base_directory,$product"
-  done
+  module_version=$(echo $module_location | sed 's|.*=||' | sed 's|"||g' | sed 's| ||g')
+  base_directory=$(echo $module_location | sed 's|^./||;s|/.*||')
+  if [[ "$base_directory" != "make" ]]; then
+    product=$(echo $module_location | sed "s|^./$base_directory/product/||;s|/.*||")
+  else
+    product="self-service"
+  fi
+  echo "$module_name,$module_version,$base_directory,$product"
 }
 
 function find_modules_in_profiles {
@@ -41,8 +30,16 @@ function find_modules_in_profiles {
       find_module_locations
     done
   done < ~/Sites/stanford_upgrade_scripts/upgrade_modules/module_list.csv
-  parse_module_location_results
-  echo "${module_locations[*]}"
+}
+
+function find_replace_module_versions {
+  if [[ $module_name == *"stanford"* ]]; then
+    find . -name "*.make" -exec sed -i '' 's/'$module_name'\]\[download\]\[tag\] \= \"'$current_version'\"/'$module_name'\]\[download\]\[tag\] \= \"'$new_version'\"/g' "{}" \;
+  elif [[ $module_name == *"open_framework"* ]]; then
+    find . -name "*.make" -exec sed -i '' 's/'$module_name'\]\[download\]\[tag\] \= \"'$current_version'\"/'$module_name'\]\[download\]\[tag\] \= \"'$new_version'\"/g' "{}" \;
+  else
+    find . -name "*.make" -exec sed -i '' 's/'$module_name'\]\[version\] \= \"'$current_version'\"/'$module_name'\]\[version\] \= \"'$new_version'\"/g' "{}" \;
+  fi
 }
 
 function update_stanford_profiles {
