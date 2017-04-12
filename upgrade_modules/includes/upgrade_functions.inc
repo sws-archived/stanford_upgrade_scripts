@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source includes/common.inc
+
 function find_module_locations {
   if [[ "$module_name" =~ .*stanford.* ]]; then
     grep_pattern="\[$module_name\]\[download\]\[tag\] \= .*"
@@ -16,18 +18,19 @@ function find_module_locations {
 function parse_module_location_results {
   module_version=$(echo $module_location | sed 's|.*=||' | sed 's|"||g' | sed 's| ||g')
   base_directory=$(echo $module_location | sed 's|^./||;s|/.*||')
-  if [[ "$module_name" == "stanford_capx" ]]; then echo "$module_version" && echo "$module_location"; fi
   if [[ "$base_directory" != "make" ]]; then
     product=$(echo $module_location | sed "s|^./$base_directory/product/||;s|/.*||")
   else
     product="self-service"
   fi
   echo "$module_name,$module_version,$base_directory,$product" >> ~/Sites/stanford_upgrade_scripts/upgrade_modules/module_locations.csv
+  if ! grep -Fxq "$module_name,$module_version" ~/Sites/stanford_upgrade_scripts/upgrade_modules/modules_in_use.csv; then
+    echo "$module_name,$module_version" >> ~/Sites/stanford_upgrade_scripts/upgrade_modules/modules_in_use.csv
+  fi
 }
 
 function find_modules_in_profiles {
   while read module_name; do
-    echo "$module_name"
     for profile in ${!stanford_profiles[@]}; do
       cd ~/Sites/$profile
       find_module_locations
