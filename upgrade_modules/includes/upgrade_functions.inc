@@ -1,40 +1,33 @@
 #!/bin/bash
 
 function find_module_locations {
-  if [[ $module_name == *"stanford"* ]]; then
-    module_location=$(grep -r "\[$module_name\]\[download\]\[tag\] \= .*" .)
-  elif [[ $module_name == *"open_framework"* ]]; then
-    module_location=$(grep -r "\[$module_name\]\[download\]\[tag\] \= .*" .)
+  if [[ "$module_name" =~ .*stanford.* ]]; then
+    grep_pattern="\[$module_name\]\[download\]\[tag\] \= .*"
+  elif [[ "$module_name" =~ .*open_framework.* ]]; then
+    grep_pattern="\[$module_name\]\[download\]\[tag\] \= .*"
   else
-    module_location=$(grep -r "\[$module_name\]\[version\] \= .*" .)
+    grep_pattern="\[$module_name\]\[version\] \= .*"
   fi
-  parse_module_location_results
+  grep -r "$grep_pattern" . | while read -r module_location; do
+    parse_module_location_results
+  done
 }
 
 function parse_module_location_results {
   module_version=$(echo $module_location | sed 's|.*=||' | sed 's|"||g' | sed 's| ||g')
   base_directory=$(echo $module_location | sed 's|^./||;s|/.*||')
+  if [[ "$module_name" == "stanford_capx" ]]; then echo "$module_version" && echo "$module_location"; fi
   if [[ "$base_directory" != "make" ]]; then
     product=$(echo $module_location | sed "s|^./$base_directory/product/||;s|/.*||")
   else
     product="self-service"
   fi
-  recommend_new_module_version
-}
-
-function recommend_new_module_version {
-  available_versions=()
-  while IFS=, read upgrade_candidate new_version; do
-    if [[ "$module_name" == "$upgrade_candidate" ]] && [[ "$module_version" != "$new_version" ]]; then
-      available_version="$new_version"
-      echo "$module_name,$module_version,$base_directory,$product,$available_version"
-    fi
-  done < ~/Sites/stanford_upgrade_scripts/upgrade_modules/new_module_versions.csv
+  echo "$module_name,$module_version,$base_directory,$product" >> ~/Sites/stanford_upgrade_scripts/upgrade_modules/module_locations.csv
 }
 
 function find_modules_in_profiles {
-  module_locations=()
   while read module_name; do
+    echo "$module_name"
     for profile in ${!stanford_profiles[@]}; do
       cd ~/Sites/$profile
       find_module_locations
