@@ -19,7 +19,17 @@ function parse_module_location_results {
   else
     product="self-service"
   fi
-  echo "$module_name,$module_version,$base_directory,$product"
+  recommend_new_module_version
+}
+
+function recommend_new_module_version {
+  available_versions=()
+  while IFS=, read upgrade_candidate new_version; do
+    if [[ "$module_name" == "$upgrade_candidate" ]] && [[ "$module_version" != "$new_version" ]]; then
+      available_version="$new_version"
+      echo "$module_name,$module_version,$base_directory,$product,$available_version"
+    fi
+  done < ~/Sites/stanford_upgrade_scripts/upgrade_modules/new_module_versions.csv
 }
 
 function find_modules_in_profiles {
