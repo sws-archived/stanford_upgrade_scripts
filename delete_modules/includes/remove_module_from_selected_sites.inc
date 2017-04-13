@@ -59,15 +59,16 @@ function check_archive_size {
 # Archive site and make sure resulting file meets the user specified threshold
 function archive_site_and_delete_module_upon_success {
   module_default_path=$(find $server_webroot/$site_with_suffix/sites/default/modules/* -mindepth 1 -maxdepth 1 -type d -name "$module_input")
-  if [ ! -d "$site_archive_directory/$site" ]; then mkdir $site_archive_directory/$site; fi
-  cp -r $module_default_path $site_archive_directory/$site/delete-modules-$module_input-$timestamp
-  if [ ! -d "$site_archive_directory/$site/delete-modules-$module_input-$timestamp" ]; then
+  mkdir $site_archive_directory/$timestamp
+  if [ ! -d "$site_archive_directory/archives-$timestamp" ]; then mkdir $site_archive_directory/archives-$timestamp; fi
+  cp -r $module_default_path $site_archive_directory/archives-$timestamp/$module_input-$site
+  if [ ! -d "$site_archive_directory/archives-$timestamp/$module_input-$site" ]; then
     echo "Skip: Copy of module appears to have failed." && continue
     archive_status="failed"
   fi
 
-  drush @$server_alias.$site sql-dump --result-file="$site_archive_directory/$site/delete-modules-$module_input-$timestamp.sql"
-  if [ -f "$site_archive_directory/$site/delete-modules-$module_input-$timestamp.sql" ]; then
+  drush @$server_alias.$site sql-dump --result-file="$site_archive_directory/archives-$timestamp/$module_input-$site-$timestamp.sql"
+  if [ -f "$site_archive_directory/$timestamp/$module_input-$site-$timestamp.sql" ]; then
     check_archive_size
   else
     echo "Skip: Database backup appears to have failed."
