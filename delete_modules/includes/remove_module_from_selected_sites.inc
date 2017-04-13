@@ -45,7 +45,7 @@ function delete_module_from_sites_default {
 }
 
 function check_archive_size {
-  archive_file_size=$(wc -c < "$site_archive_directory/$site/delete-modules-$module_input-$timestamp.sql")
+  archive_file_size=$(wc -c < "$site_archive_directory/archives-$timestamp/$module_input-$site-$timestamp.sql")
   echo "File size: $archive_file_size."
   if (( $archive_file_size > $minimum_size )); then
     archive_status="success"
@@ -68,7 +68,7 @@ function archive_site_and_delete_module_upon_success {
   fi
 
   drush @$server_alias.$site sql-dump --result-file="$site_archive_directory/archives-$timestamp/$module_input-$site-$timestamp.sql"
-  if [ -f "$site_archive_directory/$timestamp/$module_input-$site-$timestamp.sql" ]; then
+  if [ -f "$site_archive_directory/archives-$timestamp/$module_input-$site-$timestamp.sql" ]; then
     check_archive_size
   else
     echo "Skip: Database backup appears to have failed."
