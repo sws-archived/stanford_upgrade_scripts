@@ -58,7 +58,7 @@ function check_archive_size {
 
 # Archive site and make sure resulting file meets the user specified threshold
 function archive_site_and_delete_module_upon_success {
-  site_archive_directory="/afs/ir/group/webservices/cgi-bin/delete-modules
+  site_archive_directory="/afs/ir/group/webservices/cgi-bin/delete-modules"
   if [ ! -d "$site_archive_directory/$site" ]; then mkdir $site_archive_directory/$site; fi
   cp -R $module_default_path $site_archive_directory/$site/
   if [ ! -d "$site_archive_directory/$site/delete-modules-$module_input-$timestamp" ]; then
