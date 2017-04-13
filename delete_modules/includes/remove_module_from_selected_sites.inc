@@ -60,9 +60,9 @@ function check_archive_size {
 function archive_site_and_delete_module_upon_success {
   module_default_path=$(find $server_webroot/$site_with_suffix/sites/default/modules/* -mindepth 1 -maxdepth 1 -type d -name "$module_input")
   if [ ! -d "$site_archive_directory/$site" ]; then mkdir $site_archive_directory/$site; fi
-  cp -r $module_default_path $site_archive_directory/$site/
+  cp -r $module_default_path $site_archive_directory/$site/delete-modules-$module_input-$timestamp
   if [ ! -d "$site_archive_directory/$site/delete-modules-$module_input-$timestamp" ]; then
-    echo "Skip: Copy of module appears to have failed."
+    echo "Skip: Copy of module appears to have failed." && continue
     archive_status="failed"
   fi
 
@@ -73,7 +73,7 @@ function archive_site_and_delete_module_upon_success {
     echo "Skip: Database backup appears to have failed."
     archive_status="failed"
   fi
-  if [[ "$archive_status" != "failed" ]]; then
+  if [[ "$archive_status" == "success" ]]; then
     delete_module_from_sites_default
   fi
   echo "Archive status: $archive_status" >> log/delete-modules-$module_input-$timestamp--deletion.log
