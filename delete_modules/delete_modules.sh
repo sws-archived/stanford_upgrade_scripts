@@ -5,6 +5,7 @@ source includes/generate_sites_options.inc
 source includes/remove_module_from_selected_sites.inc
 source variables.inc
 timestamp=$(date +%Y%m%d%H%M%S)
+datestamp=$(date +%Y%m%d)
 
 # Check to be sure this script is being run on the server expected.
 server_hostname=$(echo `hostname`)

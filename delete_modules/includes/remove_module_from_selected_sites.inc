@@ -45,7 +45,7 @@ function delete_module_from_sites_default {
 }
 
 function check_archive_size {
-  archive_file_size=$(wc -c < "$site_archive_directory/archives-$timestamp/$module_input-$site-$timestamp.sql")
+  archive_file_size=$(wc -c < "$site_archive_directory/archives-$datestamp/$module_input-$site-$timestamp.sql")
   echo "File size: $archive_file_size."
   if (( $archive_file_size > $minimum_size )); then
     archive_status="success"
@@ -59,16 +59,15 @@ function check_archive_size {
 # Archive site and make sure resulting file meets the user specified threshold
 function archive_site_and_delete_module_upon_success {
   module_default_path=$(find $server_webroot/$site_with_suffix/sites/default/modules/* -mindepth 1 -maxdepth 1 -type d -name "$module_input")
-  mkdir $site_archive_directory/$timestamp
-  if [ ! -d "$site_archive_directory/archives-$timestamp" ]; then mkdir $site_archive_directory/archives-$timestamp; fi
-  cp -r $module_default_path $site_archive_directory/archives-$timestamp/$module_input-$site
-  if [ ! -d "$site_archive_directory/archives-$timestamp/$module_input-$site" ]; then
+  if [ ! -d "$site_archive_directory/archives-$datestamp" ]; then mkdir $site_archive_directory/archives-$datestamp; fi
+  cp -r $module_default_path $site_archive_directory/archives-$datestamp/$module_input-$site
+  if [ ! -d "$site_archive_directory/archives-$datestamp/$module_input-$site" ]; then
     echo "Skip: Copy of module appears to have failed." && continue
     archive_status="failed"
   fi
 
-  drush @$server_alias.$site sql-dump --result-file="$site_archive_directory/archives-$timestamp/$module_input-$site-$timestamp.sql"
-  if [ -f "$site_archive_directory/archives-$timestamp/$module_input-$site-$timestamp.sql" ]; then
+  drush @$server_alias.$site sql-dump --result-file="$site_archive_directory/archives-$datestamp/$module_input-$site-$timestamp.sql"
+  if [ -f "$site_archive_directory/archives-$datestamp/$module_input-$site-$timestamp.sql" ]; then
     check_archive_size
   else
     echo "Skip: Database backup appears to have failed."
