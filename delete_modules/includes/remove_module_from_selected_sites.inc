@@ -45,12 +45,11 @@ function delete_module_from_sites_default {
 }
 
 function check_archive_size {
-  archive_file_size=$(wc -c < "$site_archive_file")
+  archive_file_size=$(wc -c < "$site_archive_directory/$site/delete-modules-$module_input-$timestamp.sql")
   echo "File size: $archive_file_size."
   if (( $archive_file_size > $minimum_size )); then
     archive_status="success"
     echo "Archive path: $site_archive_file" >> log/delete-modules-$module_input-$timestamp--deletion.log
-    delete_module_from_sites_default
   else
     archive_status="suspicious"
     echo "The archive might not have saved correctly; its filesize is quite low. Do you want to skip this site? " -n 1 -r
@@ -59,14 +58,23 @@ function check_archive_size {
 
 # Archive site and make sure resulting file meets the user specified threshold
 function archive_site_and_delete_module_upon_success {
-  site_archive_file="$site_archive_path/delete-modules-$site-$timestamp.tar.gz"
-  echo "Archiving $site."
-  drush @$server_alias.$site ard --destination="$site_archive_file"
-  if [ -f "$site_archive_file" ]; then
+  site_archive_directory="/afs/ir/group/webservices/cgi-bin/delete-modules
+  if [ ! -d "$site_archive_directory/$site" ]; then mkdir $site_archive_directory/$site; fi
+  cp -R $module_default_path $site_archive_directory/$site/
+  if [ ! -d "$site_archive_directory/$site/delete-modules-$module_input-$timestamp" ]; then
+    echo "Skip: Copy of module appears to have failed."
+    archive_status="failed"
+  fi
+
+  drush @$server_alias.$site sql-dump --result-file="$site_archive_directory/$site/delete-modules-$module_input-$timestamp.sql"
+  if [ -f "$site_archive_directory/$site/delete-modules-$module_input-$timestamp.sql" ]; then
     check_archive_size
   else
-    echo "Skip: Archive appears to have failed."
+    echo "Skip: Database backup appears to have failed."
     archive_status="failed"
+  fi
+  if [[ "$archive_status" != "failed" ]]; then
+    delete_module_from_sites_default
   fi
   echo "Archive status: $archive_status" >> log/delete-modules-$module_input-$timestamp--deletion.log
 }
