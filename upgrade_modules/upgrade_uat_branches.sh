@@ -14,8 +14,7 @@ source includes/upgrade_functions.inc
 
 # variables that need updating
 last_stable_branch="stable20161206"
-modules_being_upgraded=("stanford_capx")
-
+modules_being_upgraded=("views" "token" "stanford_sites_helper" "stanford_feeds_helper" "stanford_events_importer" "stanford_capx" "stanford_bean_types" "social_share" "metatag" "field_collection" "colorbox" )
 # variables you can ignore for the most part
 date=`date +%Y%m%d`
 new_uat_branch="uat$date"
@@ -36,8 +35,7 @@ declare -A stanford_profiles=(
   ["Stanford-Drupal-Profile"]="7.x-2.x"
 )
 
-find_modules_in_profiles
-exit
+# find_modules_in_profiles
 
 # download gitolite repository and checkout last stable branch
 if [ ! -d ~/Sites/$last_stable_branch ]; then
@@ -52,7 +50,7 @@ echo "\n"
 if [[ $REPLY =~ ^[Yy]$ ]]; then
   push_profile_branch_changes
 else
-  exit
+ exit
 fi
 
 for product in ${!products_list[@]}; do
@@ -65,7 +63,7 @@ for product in ${!products_list[@]}; do
   echo "\n"
   if [[ $REPLY =~ ^[Yy]$ ]]; then
     push_product_branch_changes
-  else2
+  else
     exit
   fi
 done

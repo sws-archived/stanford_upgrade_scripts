@@ -39,6 +39,7 @@ function find_modules_in_profiles {
 }
 
 function find_replace_module_versions {
+  echo "$new_version"
   if [[ $module_name == *"stanford"* ]]; then
     find . -name "*.make" -exec sed -i '' 's/'$module_name'\]\[download\]\[tag\] \= \"'$current_version'\"/'$module_name'\]\[download\]\[tag\] \= \"'$new_version'\"/g' "{}" \;
   elif [[ $module_name == *"open_framework"* ]]; then
@@ -62,8 +63,17 @@ function update_stanford_profiles {
       echo "git checkout -b $new_uat_branch"
       git checkout -b $new_uat_branch
     fi
-    while IFS=, read module_name current_version new_version; do
-      find_replace_module_versions
+
+    # Clean ^M from csv downloaded files
+    cat ~/Sites/stanford_upgrade_scripts/upgrade_modules/modules_to_upgrade.csv⏎ | tr -d '\r' > ~/.tmp_file.txt
+    mv ~/.tmp_file.txt ~/Sites/stanford_upgrade_scripts/upgrade_modules/modules_to_upgrade.csv⏎
+
+    while IFS=, read module_name add_upgrade current_version new_version; do
+      if [[ "$add_upgrade" == "Update" ]]; then
+	find_replace_module_versions
+      else
+	echo "Skipping $module_name, not tagged for update."
+      fi
     done < ~/Sites/stanford_upgrade_scripts/upgrade_modules/modules_to_upgrade.csv
     if [ `git rev-parse --abbrev-ref HEAD` == "$new_uat_branch" ]; then
       git add *
@@ -135,25 +145,44 @@ function build_product_site {
 
 function move_commit_modules {
   for module in ${modules_being_upgraded[@]}; do
+    echo "module being moved: $module"
     cd ~/Sites/$last_stable_branch
     git checkout $new_uat_product_branch
+    git reset --hard HEAD
     git status
-    rm -rf ~/Sites/$last_stable_branch/sites/all/modules/stanford/$module
     if [[ "$module" == "stanford"* ]] && [ -d ~/Sites/$new_uat_product_branch/sites/all/modules/stanford/$module ]; then
-      mv ~/Sites/$new_uat_product_branch/sites/all/modules/stanford/$module ~/Sites/$last_stable_branch/sites/all/modules/stanford
-      new_version=$(sed -n -e 's/^version = \(.*\)/\1/p' ~/Sites/$last_stable_branch/sites/all/modules/stanford/$module/$module.info)
+      echo "rm -rf ~/Sites/$last_stable_branch/sites/all/modules/stanford/$module"
+      rm -rf ~/Sites/$last_stable_branch/sites/all/modules/stanford/$module
+      echo "cp -r ~/Sites/$new_uat_product_branch/sites/all/modules/stanford/$module ~/Sites/$last_stable_branch/sites/all/modules/stanford"
+      cp -r ~/Sites/$new_uat_product_branch/sites/all/modules/stanford/$module ~/Sites/$last_stable_branch/sites/all/modules/stanford
+      git status
+      new_version=$(sed -n -e 's/^version = \(.*\)/\1/p' ~/Sites/$last_stable_branch/sites/all/modules/stanford/$module/$module.info | sed 's/"//g')
+      read -p "Should I commit $module-$new_version? " -n 1 -r
+      echo "\n"
+      if [[ $REPLY =~ ^[Nn]$ ]]; then
+	exit
+      fi
       git add sites/all/modules/stanford/$module_name
-    elif [ -d ~/Sites/$new_uat_product_branch/sites/all/modules/contrib/$module ]; then
-      mv ~/Sites/$new_uat_product_branch/sites/all/modules/contrib/$module ~/Sites/$last_stable_branch/sites/all/modules/contrib
-      new_version=$(sed -n -e 's/^version = \(.*\)/\1/p' ~/Sites/$last_stable_branch/sites/all/modules/contrib/$module/$module.info)
+    elif [ ! -z "$module" ] && [ -d ~/Sites/$new_uat_product_branch/sites/all/modules/contrib/$module ]; then
+      echo "rm -rf ~/Sites/$last_stable_branch/sites/all/modules/contrib/$module"
+      rm -rf ~/Sites/$last_stable_branch/sites/all/modules/contrib/$module
+      echo "cp -r ~/Sites/$new_uat_product_branch/sites/all/modules/contrib/$module ~/Sites/$last_stable_branch/sites/all/modules/contrib"
+      cp -r ~/Sites/$new_uat_product_branch/sites/all/modules/contrib/$module ~/Sites/$last_stable_branch/sites/all/modules/contrib
+      git status
+      new_version=$(sed -n -e 's/^version = \(.*\)/\1/p' ~/Sites/$last_stable_branch/sites/all/modules/contrib/$module/$module.info | sed 's/"//g')
+      read -p "Should I commit $module-$new_version? " -n 1 -r
+      echo "\n"
+      if [[ $REPLY =~ ^[Nn]$ ]]; then
+	exit
+      fi
       git add sites/all/modules/contrib/$module_name
     else
       echo "Not able to find module in built site"
-      exit
     fi
     git status
     echo "$module"
     git commit -m "Update module $module-$new_version"
+    git push
   done
 }
 
