@@ -56,13 +56,13 @@ function update_stanford_profiles {
     cd ~/Sites/$profile
     git checkout $profile_master_branch
     git pull
-    if [ `git branch --list "$new_uat_branch"` ]; then
-      echo "git checkout $new_uat_branch"
-      git checkout $new_uat_branch
-    else
-      echo "git checkout -b $new_uat_branch"
-      git checkout -b $new_uat_branch
-    fi
+#    if [ `git branch --list "$new_uat_branch"` ]; then
+#      echo "git checkout $new_uat_branch"
+#      git checkout $new_uat_branch
+#    else
+#      echo "git checkout -b $new_uat_branch"
+#      git checkout -b $new_uat_branch
+#    fi
 
     # Clean ^M from csv downloaded files
     cat ~/Sites/stanford_upgrade_scripts/upgrade_modules/modules_to_upgrade.csv⏎ | tr -d '\r' > ~/.tmp_file.txt
@@ -71,17 +71,19 @@ function update_stanford_profiles {
     while IFS=, read module_name add_upgrade current_version new_version; do
       if [[ "$add_upgrade" == "Update" ]]; then
 	find_replace_module_versions
+	git checkout -b $new_uat_branch-$module_name-$current_version-$new_version
+	if [ `git rev-parse --abbrev-ref HEAD` == "$new_uat_branch-$module_name-$current_version-$new_version" ]; then
+	  git add *
+	  git commit -m "Update module $module_name from $current_version to $new_version"
+	  git push --set-upstream origin $new_uat_branch-$module_name-$current_version-$new_version
+	else
+	  echo "something appears to have gone wrong"
+	  exit
+	fi
       else
 	echo "Skipping $module_name, not tagged for update."
       fi
     done < ~/Sites/stanford_upgrade_scripts/upgrade_modules/modules_to_upgrade.csv
-    if [ `git rev-parse --abbrev-ref HEAD` == "$new_uat_branch" ]; then
-      git add *
-      git commit -m "Module version updates for $new_uat_branch"
-    else
-      echo "something appears to have gone wrong"
-      exit
-    fi
   done
 }
 
